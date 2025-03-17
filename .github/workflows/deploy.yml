@@ -1,0 +1,31 @@
+name: Deploy WordPress 02 to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.LINUX_03 }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa
+          ssh-keyscan -H 52.221.235.56 >> ~/.ssh/known_hosts
+
+      - name: Deploy WordPress to EC2
+        run: |
+          ssh ubuntu@52.221.235.56 "
+            cd /var/www/wordpress_02 &&
+            git pull origin_02 main &&
+            sudo systemctl restart nginx
+          "
